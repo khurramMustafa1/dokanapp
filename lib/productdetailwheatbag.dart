@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:internshipproject2/saveditem.dart';
+import 'package:internshipproject2/cart.dart';   // ✅ for globalCartItems
+import 'package:internshipproject2/midel/cartmodel.dart';
 
 class ProductDetailsPage extends StatefulWidget {
   const ProductDetailsPage({super.key});
@@ -47,22 +48,20 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
+                  children: const [
+                    Text(
                       "Wheat Grain",
-                      style: TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                      TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 4),
-                    const Text(
+                    SizedBox(height: 4),
+                    Text(
                       "Wheat",
                       style: TextStyle(color: Colors.grey),
                     ),
-                    const SizedBox(height: 8),
-
-                    // Price Row
+                    SizedBox(height: 8),
                     Row(
-                      children: const [
+                      children: [
                         Text(
                           "1200 Rs",
                           style: TextStyle(
@@ -81,20 +80,19 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                         ),
                       ],
                     ),
-
-                    const SizedBox(height: 16),
-                    const Text(
+                    SizedBox(height: 16),
+                    Text(
                       "Description",
                       style:
                       TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      "Sed pellentesque ac nisl ipsum ipsum. Nunc ac malesuada massa faucibus quis. In etiam velit amet mi lorem proin duis ullamcorper et...",
+                    SizedBox(height: 6),
+                    Text(
+                      "Sed pellentesque ac nisl ipsum ipsum. Nunc ac malesuada massa faucibus quis...",
                       style: TextStyle(color: Colors.grey),
                     ),
-                    const SizedBox(height: 6),
-                    const Text(
+                    SizedBox(height: 6),
+                    Text(
                       "Read More",
                       style: TextStyle(color: Colors.black),
                     ),
@@ -160,9 +158,25 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => saveditem()),
+                      // ✅ Create cart item with selected quantity
+                      final cartItem = CartItem(
+                        image: "assets/images/wheat1.png",
+                        title: "Wheat Grain",
+                        weight: "x 10 Kg",
+                        price: 1200,
+                        oldPrice: 1600,
+                        quantity: quantity,
+                      );
+
+                      // ✅ Add to global cart list
+                      globalCartItems.add(cartItem);
+
+                      // ✅ Show confirmation
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Item added to cart"),
+                          duration: Duration(seconds: 2),
+                        ),
                       );
                     },
                     child: const Text(

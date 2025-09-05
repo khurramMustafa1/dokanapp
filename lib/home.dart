@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:internshipproject2/Widgets/textfield.dart';
 import 'package:internshipproject2/midel/gridviewmodel.dart';
+import 'package:internshipproject2/notifications.dart';
 import 'package:internshipproject2/wheat.dart';
 class home extends StatefulWidget {
   const home({super.key});
@@ -13,16 +14,16 @@ class _homeState extends State<home> {
   @override
   TextEditingController name = TextEditingController();
   List<GridItem> items=[
-    GridItem(name: "Rice", image: "assets/images/rice.png", page: null,),
+    GridItem(name: "Rice", image: "assets/images/rice.png", page: Wheat()),
     GridItem(name: "Wheat", image: "assets/images/w.png", page: Wheat(),),
-    GridItem(name: "Oats", image: "assets/images/o.png", page: null,),
-    GridItem(name: "Barely", image: "assets/images/barely.png", page: null,),
-    GridItem(name: "Corn", image: "assets/images/corn.png", page: null,),
-    GridItem(name: "Wheat", image: "assets/images/w.png", page: null,),
-    GridItem(name: "Oats", image: "assets/images/o.png", page: null,),
-    GridItem(name: "Barely", image: "assets/images/barely.png", page: null,),
-    GridItem(name: "Corn", image: "assets/images/corn.png", page: null,),
-    GridItem(name: "Show All", image: "assets/images/showall.png", page: null,),
+    GridItem(name: "Oats", image: "assets/images/o.png", page: Wheat(),),
+    GridItem(name: "Barely", image: "assets/images/barely.png", page: Wheat()),
+    GridItem(name: "Corn", image: "assets/images/corn.png", page: Wheat()),
+    GridItem(name: "Wheat", image: "assets/images/w.png", page: Wheat()),
+    GridItem(name: "Oats", image: "assets/images/o.png", page: Wheat()),
+    GridItem(name: "Barely", image: "assets/images/barely.png", page: Wheat()),
+    GridItem(name: "Corn", image: "assets/images/corn.png", page: Wheat()),
+    GridItem(name: "Show All", image: "assets/images/showall.png", page: Wheat()),
   ];
 
   Widget build(BuildContext context) {
@@ -38,9 +39,7 @@ class _homeState extends State<home> {
             padding: const EdgeInsets.only(right: 20.5),
             child: IconButton(
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Image Button Clicked")),
-                );
+               Navigator.push(context, MaterialPageRoute(builder: (context)=>notification()));
               },
               icon: Image.asset(
                 'assets/images/alaram.png', // Your image path

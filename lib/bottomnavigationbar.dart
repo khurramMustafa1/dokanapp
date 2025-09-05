@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:internshipproject2/cart.dart';
 import 'package:internshipproject2/home.dart';
+import 'package:internshipproject2/orders/order.dart';
+import 'package:internshipproject2/profile/profile.dart';
 import 'package:internshipproject2/saveditem.dart';
 
 class BottomNavDemo extends StatefulWidget {
@@ -13,23 +15,21 @@ class BottomNavDemo extends StatefulWidget {
 class _BottomNavDemoState extends State<BottomNavDemo> {
   int _currentIndex = 0;
 
-  // Example pages for each tab
   final List<Widget> _pages = [
     home(),
-   CartPage(),
-    home(),
+    CartPage(),
+    order(),
     saveditem(),
-    home()
+    profile()
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: _pages[_currentIndex],
-
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        type: BottomNavigationBarType.fixed, // 👈 for 5+ items
+        type: BottomNavigationBarType.fixed,
         selectedItemColor: Colors.red,
         unselectedItemColor: Colors.grey,
         onTap: (index) {
@@ -72,7 +72,7 @@ class _BottomNavDemoState extends State<BottomNavDemo> {
           ),
           BottomNavigationBarItem(
             icon: Image.asset(
-              "assets/images/profile.png",
+              "assets/images/profile1.png",
               height: 24,
               color: _currentIndex == 4 ? Colors.red : Colors.grey,
             ),

@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:internshipproject2/Checkoutpage.dart';
 import 'package:internshipproject2/midel/cartmodel.dart';
+
+// ✅ Global shared cart list
+List<CartItem> globalCartItems = [];
+
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
 
@@ -10,35 +14,8 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> {
-  List<CartItem> cartItems = [
-    CartItem(
-      image: "assets/images/w3.png",
-      title: "Wheat Grain Bag",
-      weight: "x 10 Kg",
-      price: 1200,
-      oldPrice: 1600,
-      quantity: 3,
-    ),
-    CartItem(
-      image: "assets/images/w3.png",
-      title: "Wheat Grain Bag",
-      weight: "x 10 Kg",
-      price: 1200,
-      oldPrice: 1600,
-      quantity: 1,
-    ),
-    CartItem(
-      image: "assets/images/w3.png",
-      title: "Wheat Grain Bag",
-      weight: "x 10 Kg",
-      price: 1200,
-      oldPrice: 1600,
-      quantity: 2,
-    ),
-  ];
-
   int get totalPrice {
-    return cartItems.fold(
+    return globalCartItems.fold(
         0, (sum, item) => sum + (item.price * item.quantity));
   }
 
@@ -46,7 +23,8 @@ class _CartPageState extends State<CartPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Cart", style: TextStyle(fontWeight: FontWeight.bold)),
+        title:
+        const Text("Cart", style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.white,
@@ -55,36 +33,38 @@ class _CartPageState extends State<CartPage> {
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
+            child: globalCartItems.isEmpty
+                ? const Center(child: Text("No items in cart"))
+                : ListView.builder(
               padding: const EdgeInsets.all(12),
-              itemCount: cartItems.length,
+              itemCount: globalCartItems.length,
               itemBuilder: (context, index) {
-                final item = cartItems[index];
+                final item = globalCartItems[index];
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Slidable(
-                  key: ValueKey(item.title + index.toString()),
-                  endActionPane: ActionPane(
-                    motion: const DrawerMotion(),
-                    extentRatio: 0.25,
-                    children: [
-                      SlidableAction(
-                        onPressed: (_) {
-                          setState(() {
-                            cartItems.removeAt(index);
-                          });
-                        },
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        icon: Icons.delete,
-                        label: 'Delete',
-                      ),
+                    key: ValueKey(item.title + index.toString()),
+                    endActionPane: ActionPane(
+                      motion: const DrawerMotion(),
+                      extentRatio: 0.25,
+                      children: [
+                        SlidableAction(
+                          onPressed: (_) {
+                            setState(() {
+                              globalCartItems.removeAt(index);
+                            });
+                          },
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          icon: Icons.delete,
+                          label: 'Delete',
+                        ),
                       ],
                     ),
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Color(0xffEEF0F6),
+                        color: const Color(0xffEEF0F6),
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
@@ -97,17 +77,20 @@ class _CartPageState extends State<CartPage> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Image.asset(item.image, height: 60, width: 60),
+                          Image.asset(item.image,
+                              height: 60, width: 60),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment:
+                              CrossAxisAlignment.start,
                               children: [
                                 Text(item.title,
                                     style: const TextStyle(
                                         fontWeight: FontWeight.bold)),
                                 Text(item.weight,
-                                    style: TextStyle(color: Colors.grey[600])),
+                                    style: TextStyle(
+                                        color: Colors.grey[600])),
                                 const SizedBox(height: 4),
                                 Row(
                                   children: [
@@ -118,8 +101,8 @@ class _CartPageState extends State<CartPage> {
                                     const SizedBox(width: 8),
                                     Text("${item.oldPrice} Rs",
                                         style: const TextStyle(
-                                          decoration:
-                                          TextDecoration.lineThrough,
+                                          decoration: TextDecoration
+                                              .lineThrough,
                                           color: Colors.grey,
                                         )),
                                   ],
@@ -130,7 +113,8 @@ class _CartPageState extends State<CartPage> {
                           Row(
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.remove_circle_outline),
+                                icon: const Icon(
+                                    Icons.remove_circle_outline),
                                 onPressed: () {
                                   setState(() {
                                     if (item.quantity > 1) {
@@ -144,7 +128,8 @@ class _CartPageState extends State<CartPage> {
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold)),
                               IconButton(
-                                icon: const Icon(Icons.add_circle_outline),
+                                icon: const Icon(
+                                    Icons.add_circle_outline),
                                 onPressed: () {
                                   setState(() {
                                     item.quantity++;
@@ -189,20 +174,25 @@ class _CartPageState extends State<CartPage> {
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8))),
                   onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => CheckoutPage(
-                          cartItems: cartItems,
+                          cartItems: globalCartItems,
                           totalPrice: totalPrice,
                         ),
                       ),
                     );
                   },
-                  child: const Text("Buy Now",style: TextStyle(color: Colors.white),),
+                  child: const Text(
+                    "Buy Now",
+                    style: TextStyle(color: Colors.white),
+                  ),
                 )
               ],
             ),
