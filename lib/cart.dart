@@ -22,6 +22,7 @@ class _CartPageState extends State<CartPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor:Colors.white,
       appBar: AppBar(
         title:
         const Text("Cart", style: TextStyle(fontWeight: FontWeight.bold)),
@@ -150,7 +151,7 @@ class _CartPageState extends State<CartPage> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Color(0xffEEF0F6),
               border: Border(
                 top: BorderSide(color: Colors.grey.shade200),
               ),

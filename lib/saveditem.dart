@@ -36,6 +36,7 @@ class saveditem extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: Text("Saved Item",style: TextStyle(
           fontSize: 24,fontWeight: FontWeight.w700,letterSpacing: -1
         ),),

@@ -28,6 +28,7 @@ class _homeState extends State<home> {
 
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text("Dokan",style: TextStyle(fontSize: 21.18,
             fontWeight: FontWeight.w400,color:
