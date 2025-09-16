@@ -179,7 +179,7 @@ class Welcome extends StatelessWidget {
                        // remove shadow for flat look
                       ),
                       onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context)=>login()));
+                        Navigator.push(context, MaterialPageRoute(builder: (context)=>LoginPage()));
                       },
                       child: const Text.rich(
                         TextSpan(

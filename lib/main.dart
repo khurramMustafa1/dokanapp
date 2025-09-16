@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:internshipproject2/provider/token.dart';
 import 'package:internshipproject2/splashscreen.dart' show splash_screen;
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MultiProvider(providers:
+      [
+        ChangeNotifierProvider(create: (context)=>TokenProvider())
+      ],
+     child:  const MyApp())
+  );
+
 }
 
 class MyApp extends StatelessWidget {

@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:internshipproject2/bottomnavigationbar.dart';
 import 'package:internshipproject2/createaccount.dart';
-import 'package:internshipproject2/home.dart';
-import 'package:internshipproject2/welcome.dart';
+import 'package:internshipproject2/services/auth.dart' show UserService;
 import 'package:internshipproject2/widgets/Textfield.dart' show customTextField;
 import 'package:internshipproject2/widgets/button.dart';
-
 import 'widgets/customtext.dart';
 
-class login extends StatefulWidget {
-  const login({super.key});
+class LoginPage extends StatefulWidget { // ✅ renamed from "login"
+  const LoginPage({super.key});
 
   @override
-  State<login> createState() => _loginState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _loginState extends State<login> {
+class _LoginPageState extends State<LoginPage> {
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
+  bool isLoading = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,13 +26,16 @@ class _loginState extends State<login> {
         backgroundColor: Colors.white,
       ),
       body: Padding(
-        padding: const EdgeInsets.only(left: 20,top: 30,right: 20),
+        padding: const EdgeInsets.only(left: 20, top: 30, right: 20),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Login", style: TextStyle(fontSize: 28, fontFamily: 'Inter',
-                  fontWeight: FontWeight.w700, color: Color(0xFF121212),letterSpacing: -1),),
+              Text("Login", style: TextStyle(
+                  fontSize: 28, fontFamily: 'Inter',
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF121212), letterSpacing: -1
+              ),),
 
               SizedBox(height: 6,),
 
@@ -40,28 +43,32 @@ class _loginState extends State<login> {
 
               SizedBox(height: 30,),
 
-              customTextField(hintText: "Email", controller: email,keyboardType: TextInputType.emailAddress,),
-
-
+              customTextField(
+                hintText: "Email",
+                controller: email,
+                keyboardType: TextInputType.emailAddress,
+              ),
 
               SizedBox(height: 30,),
 
-              customTextField(hintText: "Password", controller: password, keyboardType: TextInputType.number,),
+              customTextField(
+                hintText: "Password",
+                controller: password,
+                keyboardType: TextInputType.visiblePassword,
+              ),
 
               SizedBox(height: 279,),
 
-              orangebutton(text: "Login",
-                onPressed: (){
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => BottomNavDemo()),
-                  );
-                },
+              orangebutton(
+                text: isLoading ? "Please wait..." : "Login",
+                onPressed: isLoading ? null : _handleLogin,
               ),
 
               SizedBox(height: 10,),
 
-              whitebutton(firstText: "Don’t have an account?", secondText: "Create Account",
+              whitebutton(
+                firstText: "Don’t have an account?",
+                secondText: "Create Account",
                 onPressed: (){
                   Navigator.push(
                     context,
@@ -69,13 +76,35 @@ class _loginState extends State<login> {
                   );
                 },
               )
-
-
             ],
           ),
         ),
       ),
-
     );
+  }
+
+  Future<void> _handleLogin() async {
+    setState(() => isLoading = true);
+
+    final user = await UserService.login(
+      email: email.text.trim(),
+      password: password.text.trim(),
+    );
+
+    setState(() => isLoading = false);
+
+    if (user != null && user.token != null) { // ✅ works now
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Login successful!")),
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => BottomNavDemo()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Login failed. Check credentials.")),
+      );
+    }
   }
 }
