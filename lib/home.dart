@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:internshipproject2/Widgets/textfield.dart';
 import 'package:internshipproject2/midel/bannermodellist.dart';
-import 'package:internshipproject2/midel/gridviewmodel.dart';
+import 'package:internshipproject2/midel/productlistmodel.dart';
 import 'package:internshipproject2/notifications.dart';
+import 'package:internshipproject2/productdetail.dart' show ProductDetailsPage;
+import 'package:internshipproject2/provider/category.dart' show CategoryProvider;
 import 'package:internshipproject2/provider/token.dart';
 import 'package:internshipproject2/services/bannerservices.dart';
+import 'package:internshipproject2/services/productsdervice.dart' show ProductService;
 import 'package:internshipproject2/wheat.dart';
 import 'package:loading_overlay/loading_overlay.dart';
 import 'package:provider/provider.dart';
+import 'package:internshipproject2/midel/categorylisrmodel.dart';
 
 class home extends StatefulWidget {
   const home({super.key});
@@ -17,28 +21,21 @@ class home extends StatefulWidget {
 }
 
 class _homeState extends State<home> {
-  @override
   bool isLoading = false;
   TextEditingController name = TextEditingController();
-  List<GridItem> items = [
-    GridItem(name: "Rice", image: "assets/images/rice.png", page: Wheat()),
-    GridItem(name: "Wheat", image: "assets/images/w.png", page: Wheat()),
-    GridItem(name: "Oats", image: "assets/images/o.png", page: Wheat()),
-    GridItem(name: "Barely", image: "assets/images/barely.png", page: Wheat()),
-    GridItem(name: "Corn", image: "assets/images/corn.png", page: Wheat()),
-    GridItem(name: "Wheat", image: "assets/images/w.png", page: Wheat()),
-    GridItem(name: "Oats", image: "assets/images/o.png", page: Wheat()),
-    GridItem(name: "Barely", image: "assets/images/barely.png", page: Wheat()),
-    GridItem(name: "Corn", image: "assets/images/corn.png", page: Wheat()),
-    GridItem(
-      name: "Show All",
-      image: "assets/images/showall.png",
-      page: Wheat(),
-    ),
-  ];
 
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() =>
+        Provider.of<CategoryProvider>(context, listen: false).loadCategories());
+  }
+
+  @override
   Widget build(BuildContext context) {
     var tokenProvider = Provider.of<TokenProvider>(context);
+    final categoryProvider = Provider.of<CategoryProvider>(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -54,7 +51,6 @@ class _homeState extends State<home> {
         ),
         centerTitle: true,
         actions: [
-          // Image Button
           Padding(
             padding: const EdgeInsets.only(right: 20.5),
             child: IconButton(
@@ -65,7 +61,7 @@ class _homeState extends State<home> {
                 );
               },
               icon: Image.asset(
-                'assets/images/alaram.png', // Your image path
+                'assets/images/alaram.png',
                 height: 19.11,
                 width: 17.62,
               ),
@@ -77,7 +73,7 @@ class _homeState extends State<home> {
           child: IconButton(
             onPressed: () {},
             icon: Image.asset(
-              'assets/images/dot.png', // Your image path
+              'assets/images/dot.png',
               height: 24,
               width: 24,
             ),
@@ -93,41 +89,40 @@ class _homeState extends State<home> {
                 value: BannerListService().getBanners(tokenProvider.getToken()),
                 initialData: BannerlistModel(),
                 builder: (context, child) {
-                  BannerlistModel bannerListingModel = context
-                      .watch<BannerlistModel>();
+                  BannerlistModel bannerListingModel =
+                  context.watch<BannerlistModel>();
                   return bannerListingModel.banners == null
                       ? Center(child: CircularProgressIndicator())
                       : SizedBox(
-                          height: 190,
-                          child: ListView.builder(
-                            itemCount: bannerListingModel.banners?.length ?? 0,
-                            itemBuilder: (context, index) {
-                              final item = bannerListingModel.banners![index];
-                              return Padding(
-                                padding: const EdgeInsets.only(
-                                  left: 24,
-                                  right: 24,
-                                ),
-                                child: Expanded(
-                                  child: Container(
-                                    width: 380,
-                                    height: 181,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      image: DecorationImage(
-                                        image: NetworkImage(item.image ?? ''),
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
+                    height: 190,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: bannerListingModel.banners?.length ?? 0,
+                      itemBuilder: (context, index) {
+                        final item = bannerListingModel.banners![index];
+                        return Padding(
+                          padding: const EdgeInsets.only(
+                            left: 24,
+                            right: 24,
+                          ),
+                          child: Container(
+                            width: 380,
+                            height: 181,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              image: DecorationImage(
+                                image: NetworkImage(item.image ?? ''),
+                              ),
+                            ),
                           ),
                         );
+                      },
+                    ),
+                  );
                 },
               ),
             ),
+            SizedBox(height: 10),
             Padding(
               padding: const EdgeInsets.only(left: 20, right: 20),
               child: customTextField(
@@ -138,36 +133,39 @@ class _homeState extends State<home> {
             ),
             const SizedBox(height: 20),
 
+            /// ✅ Category Grid from Backend
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: GridView.builder(
+              child: categoryProvider.isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : categoryProvider.categoryModelList == null ||
+                  categoryProvider.categoryModelList!.categories == null ||
+                  categoryProvider
+                      .categoryModelList!.categories!.isEmpty
+                  ? const Center(child: Text("No categories found"))
+                  : GridView.builder(
                 shrinkWrap: true,
-                // 👈 so it doesn’t take full height
                 physics: const NeverScrollableScrollPhysics(),
-                // 👈 disable inner scroll
-                itemCount: items.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 5, // like in your pic → 5 items in a row
+                itemCount: categoryProvider
+                    .categoryModelList!.categories!.length,
+                gridDelegate:
+                const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 5,
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10,
                   childAspectRatio: 0.75,
                 ),
                 itemBuilder: (context, index) {
-                  final item = items[index];
+                  final Category category = categoryProvider
+                      .categoryModelList!.categories![index];
                   return GestureDetector(
                     onTap: () {
-                      // 👇 what happens when user taps item
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=>Wheat()));
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("${item.name} clicked")),
+                        SnackBar(
+                            content: Text(
+                                "${category.name ?? "Unknown"} clicked")),
                       );
-
-                      // if you want to navigate to page:
-                      if (item.page != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => item.page!),
-                        );
-                      }
                     },
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -175,11 +173,18 @@ class _homeState extends State<home> {
                         CircleAvatar(
                           radius: 28,
                           backgroundColor: Colors.grey[200],
-                          backgroundImage: AssetImage(item.image),
+                          backgroundImage: (category.image != null &&
+                              category.image!.isNotEmpty)
+                              ? NetworkImage(category.image!)
+                              : null,
+                          child: (category.image == null ||
+                              category.image!.isEmpty)
+                              ? const Icon(Icons.image_not_supported)
+                              : null,
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          item.name,
+                          category.name ?? "Unnamed",
                           style: const TextStyle(fontSize: 12),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -190,37 +195,85 @@ class _homeState extends State<home> {
               ),
             ),
             SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.only(right: 170),
-              child: Text(
-                "Recommended for you",
-                style: TextStyle(
-                  fontSize: 18,
-                  letterSpacing: -1,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+            // 👇 Replace your "FutureBuilder<Productlistmodel?>" wala part with this
+            Text("Recommended for you",style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+            FutureBuilder<Productlistmodel?>(
+              future: ProductService().fetchProducts(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (!snapshot.hasData || snapshot.data == null || snapshot.data!.products == null || snapshot.data!.products!.isEmpty) {
+                  return const Center(child: Text("No products found"));
+                }
+
+                final products = snapshot.data!.products!;
+
+                return Padding(
+                  padding: const EdgeInsets.only(right: 20, left: 20),
+                  child: Column(
+                    children: List.generate(
+                      (products.length / 2).ceil(),
+                          (rowIndex) {
+                        final start = rowIndex * 2;
+                        final end = (start + 2 <= products.length) ? start + 2 : products.length;
+                        final rowProducts = products.sublist(start, end);
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Row(
+                            children: rowProducts.map((product) {
+                              return Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ProductDetailsPage(product: product),
+                                      ),
+                                    );
+                                  },
+                                  child: Stack(
+                                    children: [
+                                      Container(
+                                        margin: const EdgeInsets.only(right: 10),
+                                        height: 129,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(10),
+                                          image: product.image != null
+                                              ? DecorationImage(
+                                            image: NetworkImage(product.image!),
+                                            fit: BoxFit.cover,
+                                          )
+                                              : null,
+                                          color: Colors.grey[200],
+                                        ),
+                                      ),
+                                      Positioned(
+                                        right: 10,
+                                        top: 10,
+                                        child: const CircleAvatar(
+                                          backgroundColor: Colors.white,
+                                          child: Icon(Icons.favorite_border, color: Colors.red),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                );
+              },
             ),
-            Padding(
-              padding: const EdgeInsets.only(right: 20, left: 20),
-              child: Row(
-                children: [
-                  Image.asset("assets/images/111.png", height: 129, width: 167),
-                  SizedBox(width: 10),
-                  Image.asset("assets/images/111.png", height: 129, width: 167),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(right: 20, left: 20),
-              child: Row(
-                children: [
-                  Image.asset("assets/images/111.png", height: 129, width: 167),
-                  SizedBox(width: 10),
-                  Image.asset("assets/images/111.png", height: 129, width: 167),
-                ],
-              ),
-            ),
+
+
+
           ],
         ),
       ),
