@@ -1,164 +1,210 @@
-import 'package:flutter/material.dart';
-import 'package:internshipproject2/midel/ordermodel.dart';
-import 'package:internshipproject2/orders/ordrdetail.dart';
 
+import 'package:flutter/material.dart';
+import 'package:internshipproject2/orders/ordrdetail.dart';
+import 'package:internshipproject2/provider/token.dart';
+import 'package:internshipproject2/services/orderservices.dart';
+import 'package:provider/provider.dart';
+
+import '../midel/modellist.dart' show Orderlist;
 
 class cancelled extends StatefulWidget {
-  cancelled({Key? key}) : super(key: key);
+  const cancelled({Key? key}) : super(key: key);
 
   @override
   State<cancelled> createState() => _cancelledState();
 }
 
 class _cancelledState extends State<cancelled> {
-  final List<OrderModel> _orders = [
-    OrderModel(
-      orderId: "KR21241",
-      items: 3,
-      address: "SD-21, North Nazimabad, Karachi",
-      amount: 1200,
-      deliveryDate: "Monday, 14 April",
-      status: "Cancelled",
-    ),
-    OrderModel(
-      orderId: "KR21242",
-      items: 5,
-      address: "Gulshan-e-Iqbal, Karachi",
-      amount: 7400,
-      deliveryDate: "Tuesday, 15 April",
-      status: "Cancelled",
-    ),
-    OrderModel(
-      orderId: "KR21243",
-      items: 2,
-      address: "Clifton Block 5, Karachi",
-      amount: 2400,
-      deliveryDate: "Wednesday, 16 April",
-      status: "Cancelled",
-    ),
-  ];
+  late Future<Orderlist> _futureOrders;
+
+  @override
+  void initState() {
+    super.initState();
+    // don’t call API here, wait for token
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(20),
-      itemCount: _orders.length,
-      itemBuilder: (context, index) {
-        final order = _orders[index];
-        return InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => order_Detail(order: order)),
-            );
-          },
-          child: Card(
-            margin: const EdgeInsets.only(bottom: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            color: Color(0xFFEEF0F6),
-            //elevation: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+    final tokenProvider = Provider.of<Token>(context);
+    final token = tokenProvider.getToken();
 
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+    if (token.isEmpty) {
+      return const Center(child: Text("No token found. Please login again."));
+    }
+
+    _futureOrders = OrderService().getCancelledOrders(token);
+
+    return FutureBuilder<Orderlist>(
+      future: _futureOrders,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return Center(child: Text("Error: ${snapshot.error}"));
+        }
+
+        if (!snapshot.hasData || snapshot.data!.orders!.isEmpty) {
+          return const Center(child: Text("No cancelled orders"));
+        }
+
+        final orders = snapshot.data!.orders!;
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(20),
+          itemCount: orders.length,
+          itemBuilder: (context, index) {
+            final order = orders[index];
+            return InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => OrderDetail(order: order),
+                  ),
+                );
+              },
+              child: Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                color: const Color(0xFFEEF0F6),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Order ID + Status
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      // Left Column
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text("ID # ${order.orderId}",
-                            style: TextStyle(color:Color(0xFF121212), fontSize: 14,
-                                fontWeight: FontWeight.w500, fontFamily: "Inter", letterSpacing: -1
+                          Text(
+                            "ID # ${order.orderNumber ?? order.id}",
+                            style: const TextStyle(
+                              color: Color(0xFF121212),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              fontFamily: "Inter",
+                              letterSpacing: -1,
                             ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            "${order.orderItems?.length ?? 0} items",
+                            style: const TextStyle(
+                              color: Color(0x66000000),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              fontFamily: "Inter",
+                              letterSpacing: -1,
+                            ),
+                          ),
+                          Text(
+                            order.shippingAddress?.address ?? "No address",
+                            style: const TextStyle(
+                              color: Color(0x66000000),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              fontFamily: "Inter",
+                              letterSpacing: -1,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "Amount",
+                                    style: TextStyle(
+                                      color: Color(0x66000000),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      fontFamily: "Inter",
+                                      letterSpacing: -1,
+                                    ),
+                                  ),
+                                  Text(
+                                    "${order.totalAmount ?? 0} Rs",
+                                    style: const TextStyle(
+                                      color: Color(0xFFFF5934),
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      fontFamily: "Inter",
+                                      letterSpacing: -1,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(width: 19),
+                              Container(
+                                height: 30,
+                                child: const VerticalDivider(
+                                  color: Color(0x40000000),
+                                  thickness: 1,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "Expected Delivery",
+                                    style: TextStyle(
+                                      color: Color(0x66000000),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      fontFamily: "Inter",
+                                      letterSpacing: -1,
+                                    ),
+                                  ),
+                                  Text(
+                                    order.deliveryDate != null
+                                        ? "${order.deliveryDate!.toLocal()}".split(" ")[0]
+                                        : "Not set",
+                                    style: const TextStyle(
+                                      color: Color(0xff121212),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      fontFamily: "Inter",
+                                      letterSpacing: -1,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                      const SizedBox(height: 6),
-                      Text("${order.items} items",
-                        style: TextStyle(color:Color(0x66000000), fontSize: 12,
-                            fontWeight: FontWeight.w500, fontFamily: "Inter", letterSpacing: -1
-                        ),),
-                      Text(order.address,
-                        style: TextStyle(color:Color(0x66000000), fontSize: 12,
-                            fontWeight: FontWeight.w500, fontFamily: "Inter", letterSpacing: -1
-                        ),),
-                      const SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Amount",
-                                style: TextStyle(color:Color(0x66000000), fontSize: 12,
-                                    fontWeight: FontWeight.w500, fontFamily: "Inter", letterSpacing: -1
-                                ),
-                              ),
-                              Text(
-                                "${order.amount} Rs",
-                                style: TextStyle(color:Color(0xFFFF5934), fontSize: 16,
-                                    fontWeight: FontWeight.w600, fontFamily: "Inter", letterSpacing: -1
-                                ),
-                              ),
-
-                            ],
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0x3DFF5934), // light red bg
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          order.status ?? "Cancelled",
+                          style: const TextStyle(
+                            color: Color(0xffFF5934), // red text
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            fontFamily: "Inter",
+                            letterSpacing: -1,
                           ),
-                          SizedBox(width: 19,),
-
-                          Container(
-                            height: 30, // adjust height
-                            child: const VerticalDivider(
-                              color: Color(0x40000000), // divider color
-                              thickness: 1,       // line thickness
-                            ),
-                          ),
-
-                          SizedBox(width: 6,),
-
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("Expected Delivery",
-                                style: TextStyle(color:Color(0x66000000), fontSize: 12,
-                                    fontWeight: FontWeight.w500, fontFamily: "Inter", letterSpacing: -1
-                                ),),
-                              Text(
-                                order.deliveryDate,
-                                style: TextStyle(color:Color(0xff121212), fontSize: 14,
-                                    fontWeight: FontWeight.w500, fontFamily: "Inter", letterSpacing: -1
-                                ),
-                              ),
-                            ],
-                          )
-                        ],
-                      )
+                        ),
+                      ),
                     ],
                   ),
-
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Color(0x3DFF5934),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      order.status,
-                      style: TextStyle(color:Color(0xffFF5934), fontSize: 12,
-                          fontWeight: FontWeight.w500, fontFamily: "Inter", letterSpacing: -1
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );

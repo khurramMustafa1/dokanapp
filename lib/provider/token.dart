@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-class TokenProvider extends ChangeNotifier {
+class Token extends ChangeNotifier {
   String _token = '';
 
   void setToken(String val) {

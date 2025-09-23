@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:internshipproject2/provider/brandprovider.dart' show BrandProvider;
 import 'package:internshipproject2/provider/category.dart' show CategoryProvider;
+import 'package:internshipproject2/provider/prooo.dart' show TokenProvider;
 import 'package:internshipproject2/provider/token.dart';
 import 'package:internshipproject2/splashscreen.dart' show splash_screen;
 import 'package:provider/provider.dart';
@@ -7,8 +9,10 @@ import 'package:provider/provider.dart';
 void main() {
   runApp(MultiProvider(providers:
       [
+        ChangeNotifierProvider(create: (context)=>Token()),
         ChangeNotifierProvider(create: (context)=>TokenProvider()),
-        ChangeNotifierProvider(create: (_) => CategoryProvider()), // ✅ added
+        ChangeNotifierProvider(create: (_) => CategoryProvider()),
+        ChangeNotifierProvider(create: (_) => BrandProvider()..loadBrands()),// ✅ added
       ],
      child:  const MyApp())
   );

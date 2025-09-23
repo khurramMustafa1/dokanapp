@@ -5,6 +5,7 @@ import 'package:internshipproject2/midel/productlistmodel.dart';
 import 'package:internshipproject2/notifications.dart';
 import 'package:internshipproject2/productdetail.dart' show ProductDetailsPage;
 import 'package:internshipproject2/provider/category.dart' show CategoryProvider;
+import 'package:internshipproject2/provider/prooo.dart';
 import 'package:internshipproject2/provider/token.dart';
 import 'package:internshipproject2/services/bannerservices.dart';
 import 'package:internshipproject2/services/productsdervice.dart' show ProductService;
@@ -27,6 +28,7 @@ class _homeState extends State<home> {
   @override
   void initState() {
     super.initState();
+    /// ✅ FIX: call loadCategories() correctly
     Future.microtask(() =>
         Provider.of<CategoryProvider>(context, listen: false).loadCategories());
   }
@@ -86,7 +88,7 @@ class _homeState extends State<home> {
             LoadingOverlay(
               isLoading: isLoading,
               child: FutureProvider.value(
-                value: BannerListService().getBanners(tokenProvider.getToken()),
+                value: BannerListService().getBanners(tokenProvider.token ?? ""),
                 initialData: BannerlistModel(),
                 builder: (context, child) {
                   BannerlistModel bannerListingModel =
@@ -97,14 +99,14 @@ class _homeState extends State<home> {
                     height: 190,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      itemCount: bannerListingModel.banners?.length ?? 0,
+                      itemCount:
+                      bannerListingModel.banners?.length ?? 0,
                       itemBuilder: (context, index) {
-                        final item = bannerListingModel.banners![index];
+                        final item =
+                        bannerListingModel.banners![index];
                         return Padding(
-                          padding: const EdgeInsets.only(
-                            left: 24,
-                            right: 24,
-                          ),
+                          padding:
+                          const EdgeInsets.only(left: 24, right: 24),
                           child: Container(
                             width: 380,
                             height: 181,
@@ -139,7 +141,8 @@ class _homeState extends State<home> {
               child: categoryProvider.isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : categoryProvider.categoryModelList == null ||
-                  categoryProvider.categoryModelList!.categories == null ||
+                  categoryProvider.categoryModelList!.categories ==
+                      null ||
                   categoryProvider
                       .categoryModelList!.categories!.isEmpty
                   ? const Center(child: Text("No categories found"))
@@ -160,7 +163,10 @@ class _homeState extends State<home> {
                       .categoryModelList!.categories![index];
                   return GestureDetector(
                     onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context)=>Wheat()));
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => Wheat()));
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                             content: Text(
@@ -195,16 +201,24 @@ class _homeState extends State<home> {
               ),
             ),
             SizedBox(height: 20),
-            // 👇 Replace your "FutureBuilder<Productlistmodel?>" wala part with this
-            Text("Recommended for you",style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+
+            // 👇 Products
+            Text(
+              "Recommended for you",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
             FutureBuilder<Productlistmodel?>(
               future: ProductService().fetchProducts(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                      child: CircularProgressIndicator());
                 }
 
-                if (!snapshot.hasData || snapshot.data == null || snapshot.data!.products == null || snapshot.data!.products!.isEmpty) {
+                if (!snapshot.hasData ||
+                    snapshot.data == null ||
+                    snapshot.data!.products == null ||
+                    snapshot.data!.products!.isEmpty) {
                   return const Center(child: Text("No products found"));
                 }
 
@@ -217,8 +231,11 @@ class _homeState extends State<home> {
                       (products.length / 2).ceil(),
                           (rowIndex) {
                         final start = rowIndex * 2;
-                        final end = (start + 2 <= products.length) ? start + 2 : products.length;
-                        final rowProducts = products.sublist(start, end);
+                        final end = (start + 2 <= products.length)
+                            ? start + 2
+                            : products.length;
+                        final rowProducts =
+                        products.sublist(start, end);
 
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 10),
@@ -230,20 +247,25 @@ class _homeState extends State<home> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => ProductDetailsPage(product: product),
+                                        builder: (context) =>
+                                            ProductDetailsPage(
+                                                product: product),
                                       ),
                                     );
                                   },
                                   child: Stack(
                                     children: [
                                       Container(
-                                        margin: const EdgeInsets.only(right: 10),
+                                        margin:
+                                        const EdgeInsets.only(right: 10),
                                         height: 129,
                                         decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius:
+                                          BorderRadius.circular(10),
                                           image: product.image != null
                                               ? DecorationImage(
-                                            image: NetworkImage(product.image!),
+                                            image: NetworkImage(
+                                                product.image!),
                                             fit: BoxFit.cover,
                                           )
                                               : null,
@@ -255,7 +277,8 @@ class _homeState extends State<home> {
                                         top: 10,
                                         child: const CircleAvatar(
                                           backgroundColor: Colors.white,
-                                          child: Icon(Icons.favorite_border, color: Colors.red),
+                                          child: Icon(Icons.favorite_border,
+                                              color: Colors.red),
                                         ),
                                       ),
                                     ],
@@ -271,9 +294,6 @@ class _homeState extends State<home> {
                 );
               },
             ),
-
-
-
           ],
         ),
       ),

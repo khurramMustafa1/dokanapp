@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:internshipproject2/midel/listviewmodel.dart';
 import 'package:internshipproject2/productdetailwheatbag.dart';
+import 'package:internshipproject2/services/servicebrand.dart'; // API service
+import 'midel/brand.dart' show Brand; // ✅ ensure correct Brand model
 import 'midel/wheatsgridview.dart';
 
 class Wheat extends StatefulWidget {
@@ -11,16 +13,10 @@ class Wheat extends StatefulWidget {
 }
 
 class _WheatState extends State<Wheat> {
-  // Brand list
-  List<listviewmodel> list1 = [
-    listviewmodel(image: "assets/images/brand1.png", name: "brand"),
-    listviewmodel(image: "assets/images/brand2.png", name: "brand"),
-    listviewmodel(image: "assets/images/neon.png", name: "Neon"),
-    listviewmodel(image: "assets/images/brand3.png", name: "brand"),
-    listviewmodel(image: "assets/images/brand4.png", name: "brand"),
-  ];
+  bool isLoading = true;
+  List<Brand> brandList = [];
 
-  // Product list
+  // Product list (unchanged)
   List<ProductModel> products = [
     ProductModel(
       image: "assets/images/w3.png",
@@ -49,6 +45,39 @@ class _WheatState extends State<Wheat> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    fetchBrands();
+  }
+
+  Future<void> fetchBrands() async {
+    try {
+      final response = await BrandService.getBrands(); // returns Brandlist?
+
+      if (response != null && response.brands != null) {
+        setState(() {
+          brandList = response.brands!; // ✅ directly assign
+          isLoading = false;
+        });
+
+        // Debug log
+        print("✔ Brands fetched: ${brandList.length}");
+        for (var b in brandList) {
+          print("➡ ${b.name} | ${b.image}");
+        }
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+        print("❌ No brands found in API response");
+      }
+    } catch (e) {
+      setState(() => isLoading = false);
+      print("⚠️ Error fetching brands: $e");
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
@@ -65,7 +94,10 @@ class _WheatState extends State<Wheat> {
                 const Text(
                   "Wheat",
                   style: TextStyle(
-                      fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: -1),
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -1,
+                  ),
                 )
               ],
             ),
@@ -77,15 +109,22 @@ class _WheatState extends State<Wheat> {
             const Text(
               "Choose Brand",
               style: TextStyle(
-                  fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -1),
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                letterSpacing: -1,
+              ),
             ),
             SizedBox(
               height: 100,
-              child: ListView.builder(
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : brandList.isEmpty
+                  ? const Center(child: Text("No brands available"))
+                  : ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: list1.length,
+                itemCount: brandList.length,
                 itemBuilder: (context, index) {
-                  final item = list1[index];
+                  final brand = brandList[index];
                   return Padding(
                     padding: const EdgeInsets.only(right: 15),
                     child: Column(
@@ -93,10 +132,18 @@ class _WheatState extends State<Wheat> {
                         CircleAvatar(
                           radius: 28,
                           backgroundColor: Colors.grey[200],
-                          backgroundImage: AssetImage(item.image),
+                          backgroundImage: brand.image != null
+                              ? NetworkImage(brand.image!)
+                              : null,
+                          child: brand.image == null
+                              ? const Icon(Icons.image_not_supported)
+                              : null,
                         ),
                         const SizedBox(height: 6),
-                        Text(item.name, style: const TextStyle(fontSize: 12)),
+                        Text(
+                          brand.name ?? "",
+                          style: const TextStyle(fontSize: 12),
+                        ),
                       ],
                     ),
                   );
@@ -110,17 +157,20 @@ class _WheatState extends State<Wheat> {
             const Text(
               "Neon's Wheats",
               style: TextStyle(
-                  fontWeight: FontWeight.w600, fontSize: 18, letterSpacing: -1),
+                fontWeight: FontWeight.w600,
+                fontSize: 18,
+                letterSpacing: -1,
+              ),
             ),
 
             const SizedBox(height: 10),
 
-            /// Product Grid
+            /// Product Grid (unchanged)
             Expanded(
               child: GridView.builder(
                 itemCount: products.length,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, // 2 items per row
+                  crossAxisCount: 2,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
                   childAspectRatio: 0.60,
@@ -128,18 +178,18 @@ class _WheatState extends State<Wheat> {
                 itemBuilder: (context, index) {
                   final product = products[index];
                   return Card(
-                    color: const Color(0xffEEF0F6), // Grey background
+                    color: const Color(0xffEEF0F6),
                     elevation: 3,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
                       children: [
-                        /// Product Image (inside card but above white box)
                         ClipRRect(
                           borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(16),
-                              topRight: Radius.circular(16)),
+                            topLeft: Radius.circular(16),
+                            topRight: Radius.circular(16),
+                          ),
                           child: Image.asset(
                             product.image,
                             fit: BoxFit.cover,
@@ -147,86 +197,91 @@ class _WheatState extends State<Wheat> {
                             width: double.infinity,
                           ),
                         ),
-
                         const SizedBox(height: 6),
-
-                        /// White container for name, prices, heart, and button
                         Expanded(
                           child: Padding(
-                            padding: const EdgeInsets.only(right: 10,left: 10),
+                            padding:
+                            const EdgeInsets.only(right: 10, left: 10),
                             child: Container(
                               width: double.infinity,
                               padding: const EdgeInsets.all(8),
                               decoration: const BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.only(
-                                  bottomLeft: Radius.circular(16),
-                                  bottomRight: Radius.circular(16),
-                                  topLeft: Radius.circular(16),
-                                  topRight: Radius.circular(16),
-                                ),
+                                borderRadius:
+                                BorderRadius.all(Radius.circular(16)),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  /// Product Name
                                   Text(
                                     product.name,
                                     style: const TextStyle(
-                                        fontWeight: FontWeight.w600, fontSize: 14),
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                    ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
-
                                   const SizedBox(height: 6),
-
-                                  /// Price + Old Price + Heart
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                     children: [
                                       Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             product.price,
                                             style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
-                                                color: Colors.black),
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                              color: Colors.black,
+                                            ),
                                           ),
                                           Text(
                                             product.oldPrice,
                                             style: const TextStyle(
-                                              decoration: TextDecoration.lineThrough,
+                                              decoration:
+                                              TextDecoration.lineThrough,
                                               color: Colors.grey,
                                               fontSize: 12,
                                             ),
                                           ),
                                         ],
                                       ),
-                                     IconButton(onPressed: (){}, icon: Icon(Icons.favorite_border,))
+                                      IconButton(
+                                        onPressed: () {},
+                                        icon: const Icon(
+                                          Icons.favorite_border,
+                                        ),
+                                      )
                                     ],
                                   ),
-
                                   const Spacer(),
-
                                   SizedBox(
                                     width: double.infinity,
                                     child: ElevatedButton(
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.black,
                                         shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(8)),
+                                          borderRadius:
+                                          BorderRadius.circular(8),
+                                        ),
                                       ),
                                       onPressed: () {
                                         Navigator.push(
                                           context,
-                                          MaterialPageRoute(builder: (context) => ProductDetailsPage()),
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                ProductDetailsPage(),
+                                          ),
                                         );
                                       },
                                       child: Text(
                                         product.buttonText,
-                                        style: const TextStyle(color: Colors.white),
+                                        style: const TextStyle(
+                                            color: Colors.white),
                                       ),
                                     ),
                                   ),
