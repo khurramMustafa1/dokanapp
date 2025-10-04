@@ -1,31 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:internshipproject2/midel/menu.dart';
+import 'package:internshipproject2/profile/privacy.dart';
 import 'package:internshipproject2/profile/profilesetting.dart' show account_setting;
+import 'package:internshipproject2/midel/profile.dart';
+import 'package:internshipproject2/services/profile.dart';
 
-class profile extends StatelessWidget {
+class profile extends StatefulWidget {
   const profile({super.key});
 
   @override
+  State<profile> createState() => _profileState();
+}
+
+class _profileState extends State<profile> {
+  User? user;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProfile();
+  }
+
+  Future<void> _fetchProfile() async {
+    try {
+      final fetchedUser = await ProfileService.getProfile();
+      setState(() {
+        user = fetchedUser;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        user = null;
+        isLoading = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Menu items
+    // NOTE: account_setting() called without a `user:` named parameter
     final List<MenuItemModel> menuItems = [
-      MenuItemModel(name: "Account Settings", page: account_setting()),
-      MenuItemModel(name: "Terms & Conditions", ),
-      MenuItemModel(name: "Privacy Policy",),
-      MenuItemModel(name: "Help & Support", ),
-      MenuItemModel(name: "Rate Our App", ),
-      MenuItemModel(name: "Logout"), // no page
+      MenuItemModel(name: "Account Settings", page: account_setting()), // <- no user param
+      MenuItemModel(name: "Terms & Conditions"),
+      MenuItemModel(name: "Privacy Policy",page: PrivacyPage()),
+      MenuItemModel(name: "Help & Support"),
+      MenuItemModel(name: "Rate Our App"),
+      MenuItemModel(name: "Logout"),
     ];
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Color(0xffEEF0F6),
+        backgroundColor: const Color(0xffEEF0F6),
         elevation: 0,
         title: const Text(
           "Profile",
-          style: TextStyle(color:Color(0xFF121212), fontSize: 24,
-              fontWeight: FontWeight.w700, fontFamily: "Inter", letterSpacing: -1
+          style: TextStyle(
+            color: Color(0xFF121212),
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+            fontFamily: "Inter",
+            letterSpacing: -1,
           ),
         ),
         actions: const [
@@ -35,11 +71,13 @@ class profile extends StatelessWidget {
           ),
         ],
       ),
-      body: Column(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
         children: [
           // Profile Card
           Container(
-            color: Color(0xffEEF0F6),
+            color: const Color(0xffEEF0F6),
             child: Container(
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(12),
@@ -58,52 +96,79 @@ class profile extends StatelessWidget {
                 children: [
                   const CircleAvatar(
                     radius: 30,
-                    backgroundImage: AssetImage("assets/images/profile1.png"),
+                    backgroundImage:
+                    AssetImage("assets/images/profile1.png"),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children:[
+                      children: [
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Muhammad Wajahat",
-                              style: TextStyle(color:Color(0xFF121212), fontSize: 18,
-                                  fontWeight: FontWeight.w600, fontFamily: "Inter", letterSpacing: -1
+                              user?.name ?? "Guest User",
+                              style: const TextStyle(
+                                color: Color(0xFF121212),
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: "Inter",
+                                letterSpacing: -1,
                               ),
                             ),
-
-                            Image.asset("assets/images/edit.png", width: 20,height: 20,)
+                            GestureDetector(
+                              onTap: () {
+                                // navigate without passing named parameter
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => account_setting(),
+                                  ),
+                                );
+                              },
+                              child: Image.asset(
+                                "assets/images/edit.png",
+                                width: 20,
+                                height: 20,
+                              ),
+                            ),
                           ],
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
-                          "mwajahat.038@gmail.com",
-                          style: TextStyle(color:Color(0xffFF5934), fontSize: 14,
-                              fontWeight: FontWeight.w500, fontFamily: "Inter", letterSpacing: -1
+                          user?.email ?? "No email",
+                          style: const TextStyle(
+                            color: Color(0xffFF5934),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            fontFamily: "Inter",
+                            letterSpacing: -1,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
-                          "+44 647886434",
-                          style: TextStyle(color:Color(0xFF121212), fontSize: 14,
-                              fontWeight: FontWeight.w500, fontFamily: "Inter", letterSpacing: -1
+                          user?.phoneNumber ?? "No phone",
+                          style: const TextStyle(
+                            color: Color(0xFF121212),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            fontFamily: "Inter",
+                            letterSpacing: -1,
                           ),
                         ),
                       ],
                     ),
                   ),
-
                 ],
               ),
             ),
           ),
 
-          SizedBox(height: 20,),
+          const SizedBox(height: 20),
 
-          // Menu List as Cards
+          // Menu List
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -112,7 +177,7 @@ class profile extends StatelessWidget {
                 final item = menuItems[index];
                 final isLogout = index == menuItems.length - 1;
                 return Card(
-                  color: Color(0xffEEF0F6),
+                  color: const Color(0xffEEF0F6),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -121,8 +186,12 @@ class profile extends StatelessWidget {
                   child: ListTile(
                     title: Text(
                       item.name,
-                      style: TextStyle(color:Color(0xFF121212), fontSize: 14,
-                          fontWeight: FontWeight.w500, fontFamily: "Inter", letterSpacing: -1
+                      style: const TextStyle(
+                        color: Color(0xFF121212),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: "Inter",
+                        letterSpacing: -1,
                       ),
                     ),
                     trailing: isLogout
@@ -130,14 +199,13 @@ class profile extends StatelessWidget {
                         : const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () {
                       if (isLogout) {
-                        // // Logout logic
-                        // ScaffoldMessenger.of(context).showSnackBar(
-                        //   const SnackBar(content: Text("Logged out")),
-                        // );
+                        // TODO: Logout logic
                       } else if (item.page != null) {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => item.page!),
+                          MaterialPageRoute(
+                            builder: (_) => item.page!,
+                          ),
                         );
                       }
                     },
@@ -147,25 +215,6 @@ class profile extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// Dummy screen to test navigation
-class DummyScreen extends StatelessWidget {
-  final String title;
-  const DummyScreen({super.key, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Text(
-          "This is $title page",
-          style: const TextStyle(fontSize: 18),
-        ),
       ),
     );
   }

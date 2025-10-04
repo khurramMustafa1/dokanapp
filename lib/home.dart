@@ -7,6 +7,7 @@ import 'package:internshipproject2/productdetail.dart' show ProductDetailsPage;
 import 'package:internshipproject2/provider/category.dart' show CategoryProvider;
 import 'package:internshipproject2/provider/prooo.dart';
 import 'package:internshipproject2/provider/token.dart';
+import 'package:internshipproject2/searchpage.dart' show SearchPage;
 import 'package:internshipproject2/services/bannerservices.dart';
 import 'package:internshipproject2/services/productsdervice.dart' show ProductService;
 import 'package:internshipproject2/wheat.dart';
@@ -127,10 +128,20 @@ class _homeState extends State<home> {
             SizedBox(height: 10),
             Padding(
               padding: const EdgeInsets.only(left: 20, right: 20),
-              child: customTextField(
-                hintText: "Search",
-                controller: name,
-                prefixImage: "assets/images/serach.png",
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SearchPage()),
+                  );
+                },
+                child: AbsorbPointer( // prevents typing in this field
+                  child: customTextField(
+                    hintText: "Search",
+                    controller: name,
+                    prefixImage: "assets/images/serach.png",
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 20),

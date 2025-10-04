@@ -1,5 +1,6 @@
-
 import 'package:flutter/material.dart';
+import 'package:internshipproject2/services/profile.dart';
+import '../midel/profile.dart';
 
 class account_setting extends StatefulWidget {
   const account_setting({super.key});
@@ -9,17 +10,64 @@ class account_setting extends StatefulWidget {
 }
 
 class _account_settingState extends State<account_setting> {
-  final TextEditingController nameController =
-  TextEditingController(text: "Muhammad Wajahat");
-  final TextEditingController phoneController =
-  TextEditingController(text: "+92 3140090925");
-  final TextEditingController storeController =
-  TextEditingController(text: "Karwaan General Store");
-  final TextEditingController addressController =
-  TextEditingController(text: "SD-21, North Nazimabad, Karachi");
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController storeController = TextEditingController();
+  final TextEditingController addressController = TextEditingController();
 
   String selectedType = "Parchoon";
   final List<String> shopTypes = ["Parchoon", "Wholesale", "Distributor"];
+
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  /// Fetch profile from API
+  Future<void> _loadProfile() async {
+    final user = await ProfileService.getProfile();
+    if (user != null) {
+      setState(() {
+        nameController.text = user.name ?? "";
+        phoneController.text = user.phoneNumber ?? "";
+        storeController.text = user.shopName ?? "";
+        addressController.text = user.shopAddress ?? "";
+        isLoading = false;
+      });
+    } else {
+      setState(() => isLoading = false);
+    }
+  }
+
+  /// Save updated profile
+  Future<void> _saveProfile() async {
+    setState(() => isLoading = true);
+
+    bool success = await ProfileService.updateProfile(
+      name: nameController.text,
+      shopName: storeController.text,
+      shopAddress: addressController.text,
+    );
+
+    setState(() => isLoading = false);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? "✅ Profile updated successfully"
+              : "❌ Failed to update profile",
+        ),
+      ),
+    );
+
+    if (success) {
+      _loadProfile(); // reload profile to show updated values immediately
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +89,9 @@ class _account_settingState extends State<account_setting> {
           ),
         ),
       ),
-      body: Column(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
@@ -53,34 +103,24 @@ class _account_settingState extends State<account_setting> {
                   style: TextStyle(color: Colors.grey, fontSize: 14),
                 ),
                 const SizedBox(height: 20),
-
-                // Name
                 _buildTextField(nameController, prefix: null),
-
                 const SizedBox(height: 12),
-
-                // Phone with WhatsApp Icon
                 _buildTextField(
                   phoneController,
                   prefix: Padding(
                     padding: const EdgeInsets.all(10.0),
-                    child: Image.asset("assets/images/pakistan.png", height: 12,width: 12,),
+                    child: Image.asset(
+                      "assets/images/pakistan.png",
+                      height: 12,
+                      width: 12,
+                    ),
                   ),
                 ),
-
                 const SizedBox(height: 12),
-
-                // Store Name
                 _buildTextField(storeController, prefix: null),
-
                 const SizedBox(height: 12),
-
-                // Address
                 _buildTextField(addressController, prefix: null),
-
                 const SizedBox(height: 12),
-
-                // Dropdown
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
@@ -104,17 +144,13 @@ class _account_settingState extends State<account_setting> {
                     },
                   ),
                 ),
-
-
               ],
             ),
           ),
-
           const Spacer(),
-
-          // Buttons
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+            padding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
             decoration: const BoxDecoration(
               border: Border(
                 top: BorderSide(color: Color(0x33000000)),
@@ -136,10 +172,7 @@ class _account_settingState extends State<account_setting> {
                       ),
                     ),
                     onPressed: () {
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(builder: (context) =>confirm_order()),
-                      // );
+                      Navigator.pop(context);
                     },
                     child: const Text(
                       "Discard",
@@ -153,8 +186,7 @@ class _account_settingState extends State<account_setting> {
                     ),
                   ),
                 ),
-                SizedBox(width: 6,),
-
+                const SizedBox(width: 6),
                 SizedBox(
                   width: 160.5,
                   height: 48,
@@ -166,12 +198,7 @@ class _account_settingState extends State<account_setting> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    onPressed: () {
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(builder: (context) =>bill()),
-                      // );
-                    },
+                    onPressed: _saveProfile,
                     child: const Text(
                       "Save Changes",
                       style: TextStyle(
